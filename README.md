@@ -1,4 +1,4 @@
-![Logo](images/CD-icon.png)
+<img src="images/if_cdaudio_unmount_18274.ico" height="128">
 
 A Qt5 GUI for CD Paranoia
 -------------------------  
