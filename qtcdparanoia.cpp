@@ -187,6 +187,11 @@ void QtCdParanoia::writeTracks(const QJsonObject importData) {
                     QString title = formatTrackNum(track_num) + " " + track.value("title").toString();
                     updateWriteStatus("Writing: " + title);
                     wavWriter.write_track(track_num, title);
+                    QJsonObject trackErr = getError("Cdparanoia_wav_qt::write_track");
+                    if(not trackErr.isEmpty()){
+                        errorMessage(getErrorText("Cdparanoia_wav_qt::write_track"),
+                                     getErrorDetailedText("Cdparanoia_wav_qt::write_track"));
+                    }
                 }
 
             } else {

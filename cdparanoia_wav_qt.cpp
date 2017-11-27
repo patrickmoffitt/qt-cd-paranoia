@@ -57,13 +57,13 @@ Cdparanoia_wav_qt::Cdparanoia_wav_qt(QString dest_root_dir,
         Cd_error_qt::set_error(__METHOD_NAME__,
                   "Music import home directory does not exist.",
                   "Please create this directory and retry.");
-        std::cerr << __METHOD_NAME__ << " error. Music import home directory does not exist.";
+        ERROR_MSG("%s", "Music import home directory does not exist.");
     } else {
         if (not destRootDirWritable) {
             Cd_error_qt::set_error(__METHOD_NAME__,
                       "Permission denied for " + QByteArray(userName).toStdString(),
                       "Unable to write in music import home directory: " + this->dest_root_dir.toStdString());
-            std::cerr << __METHOD_NAME__ << " error. Unable to write in music import home directory.";
+            ERROR_MSG("%s", "Unable to write in music import home directory.");
         }
     }
     fs::path path{this->dest_root_dir.toStdString()};
@@ -77,7 +77,7 @@ Cdparanoia_wav_qt::Cdparanoia_wav_qt(QString dest_root_dir,
             Cd_error_qt::set_error(__METHOD_NAME__,
                       "Failed to create album directory.",
                       "Attempt to create " + targetPath.toStdString() + " failed.");
-            std::cerr << __METHOD_NAME__ << " error. Failed to create album directory.";
+            ERROR_MSG("%s", "Failed to create album directory.");
             targetPath = "";
         }
     }
@@ -91,7 +91,7 @@ void Cdparanoia_wav_qt::put_num(long int num, int f, int bytes) {
     for (i=0; bytes--; i++) {
         c = static_cast<unsigned char>((num >> (i<<3)) & 0xff);
         if (write(f, &c, 1)==-1) {
-            perror("Could not write to output.");
+            ERROR_MSG("%s", "Could not write to output.");
             exit(1);
         }
     }
@@ -123,19 +123,23 @@ void Cdparanoia_wav_qt::write_WAV_header(int fd, int32_t i_bytecount) {
 const void Cdparanoia_wav_qt::write_track(track_t track_num, QString title) {
 
     if (track_num < 1 or track_num > 99) {
-        std::cerr << __FUNCTION__ << "Track number (" << track_num << ") is out of bounds for \""
-                  << title.toStdString()<< "\"." << std::endl;
+        ERROR_MSG("%s %d %s %s %s",
+                  "Track number (",
+                  int(track_num),
+                  ") is out of bounds for \"",
+                  title.toStdString(),
+                  "\".");
     }
     cdrom_drive_t *drive = nullptr;
     CdIo_t *p_cdio = cdio_qt::open(nullptr, DRIVER_UNKNOWN);
     drive = cdio_cddap_identify_cdio(p_cdio, CDDA_MESSAGE_FORGETIT, nullptr);
 
     if (!drive) {
-        std::cerr << __FUNCTION__ << "Unable to identify audio CD disc." << std::endl;
+        ERROR_MSG("%s", "Unable to identify audio CD disc.");
     }
 
     if (cdda_open(drive) != 0) {
-        std::cerr << __FUNCTION__ << "Unable to open disc." << std::endl;
+        ERROR_MSG("%s", "Unable to open disc.");
         exit(77);
     }
 
@@ -145,8 +149,10 @@ const void Cdparanoia_wav_qt::write_track(track_t track_num, QString title) {
     lsn_t i_first_lsn;
     i_first_lsn = cdio_cddap_track_firstsector(drive, track_num);
     if (-1 == i_first_lsn) {
-        std::cerr << __FUNCTION__ << "Failed to get starting LSN for track " << track_num
-                  << "." << std::endl;
+        ERROR_MSG("%s %d %s",
+                  "Failed to get starting LSN for track ",
+                  int(track_num),
+                  ".");
     } else {
         lsn_t i_cursor;
         ssize_t bytes_ret;
@@ -154,11 +160,14 @@ const void Cdparanoia_wav_qt::write_track(track_t track_num, QString title) {
         lsn_t i_last_lsn = cdda_track_lastsector(drive, i_track);
         title = targetPath + title + ".wav";
 
-        std::cerr << "Creating " << title.toStdString() << std::endl;
+        ERROR_MSG("%s %s",
+                  "Creating ",
+                  title.toStdString());
         int fd = creat(title.toUtf8(), 0644);
         if (-1 == fd) {
-            std::cerr << __FUNCTION__ << "Unable to create " << title.toStdString() << std::endl;
-            // @ToDo handle in QT alert.
+            set_error(__METHOD_NAME__,
+                      "Track write error",
+                      "Unable to create " + title.toStdString());
         }
         // Set reading mode for full paranoia, but allow skipping sectors.
         paranoia_modeset(p, PARANOIA_MODE_FULL^PARANOIA_MODE_NEVERSKIP);
@@ -172,12 +181,12 @@ const void Cdparanoia_wav_qt::write_track(track_t track_num, QString title) {
             char *psz_mes = cdda_messages(drive);
 
             if (psz_mes || psz_err) {
-                std::cerr << psz_mes << psz_err << std::endl;
+                ERROR_MSG("%s %d", psz_mes, psz_err);
             }
             free(psz_err);
             free(psz_mes);
             if (!p_readbuf) {
-                std::cerr << __FUNCTION__ << "cd-paranoia read error. Stopping." << std::endl;
+                ERROR_MSG("%s", "cd-paranoia read error. Stopping.");
                 break;
             }
             bytes_ret = write(fd, p_readbuf, CDIO_CD_FRAMESIZE_RAW);
