@@ -1,11 +1,13 @@
 cmake_minimum_required(VERSION 2.8.12)
+# CMAKE_OSX_DEPLOYMENT_TARGET Must be set before project() is called.
+set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11")
 project("qt-cd-paranoia")
 set(PROJECT_NAME "qt-cd-paranoia")
 
 set(RELEASE ON)
 set(DEVELOPMENT OFF)
-set(APPLE OFF)
-set(CYGWIN ON)
+set(APPLE ON)
+set(CYGWIN OFF)
 
 if(DEVELOPMENT)
     set(CMAKE_BINARY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/cmake-build-debug/")
@@ -33,11 +35,8 @@ if(RELEASE)
     set(CPACK_PACKAGE_VERSION_PATCH "${PATCH}")
     set(CPACK_PACKAGE_FILE_NAME "qt-cd-paranoia-${VERSION}")
     if(APPLE)
-        set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11")
         set(CMAKE_PREFIX_PATH /usr/local/Qt/5.9.2/clang_64//lib/cmake/Qt5/)
-
         set(ICNS_FILE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/images/if_cdaudio_unmount_18274.icns")
-
         set(MACOSX_BUNDLE_BUNDLE_NAME "${APP_NAME}")
         set(MACOSX_BUNDLE_EXECUTABLE_NAME "${MACOSX_BUNDLE_BUNDLE_NAME}")
         set(MACOSX_BUNDLE_INFO_STRING "Copyright (C) 2017 ${AUTHOR}")
