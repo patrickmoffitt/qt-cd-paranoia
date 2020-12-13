@@ -33,4 +33,6 @@ have been possible.
 Patrick Moffitt <br>
 November 27, 2017
   
-  
+Project Status
+--------------
+This project has been archived and is no longer being maintained by the author. 
